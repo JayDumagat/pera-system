@@ -103,6 +103,8 @@ function App() {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
                         transition={{ duration: 0.2 }}
+                        role="status"
+                        aria-label="TIN verified"
                         className="min-h-11 border border-emerald-500 bg-emerald-900/40 px-3 text-sm font-semibold text-emerald-300"
                       >
                         Verified
@@ -204,6 +206,7 @@ function App() {
                       : 'border-slate-700 bg-slate-900 text-slate-100'
                   }`}
                   onClick={() => setTermsReviewed(true)}
+                  aria-pressed={termsReviewed}
                 >
                   Review Terms
                 </button>
