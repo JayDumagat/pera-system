@@ -205,7 +205,7 @@ function App() {
                       ? 'border-emerald-500 bg-emerald-900/30 text-emerald-200'
                       : 'border-slate-700 bg-slate-900 text-slate-100'
                   }`}
-                  onClick={() => setTermsReviewed(true)}
+                  onClick={() => setTermsReviewed(!termsReviewed)}
                   aria-pressed={termsReviewed}
                 >
                   Review Terms

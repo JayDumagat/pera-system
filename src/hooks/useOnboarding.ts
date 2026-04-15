@@ -58,13 +58,21 @@ const isaQuestions: IsaQuestion[] = [
 ]
 
 const banks = ['BDO', 'BPI', 'UnionBank', 'GCash']
+const TIN_SHORT_LENGTH = 9
+const TIN_LONG_LENGTH = 12
 
+/**
+ * Formats a Philippine TIN into grouped display form.
+ * 9 digits => 123-456-789
+ * 12 digits => 123-456-789-000
+ */
 const formatTin = (value: string) => {
-  const digits = value.replace(/\D/g, '').slice(0, 12)
+  const digits = value.replace(/\D/g, '').slice(0, TIN_LONG_LENGTH)
 
   if (digits.length <= 3) return digits
   if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`
-  if (digits.length <= 9) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  if (digits.length <= TIN_SHORT_LENGTH)
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
 
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)}-${digits.slice(9)}`
 }
@@ -86,7 +94,8 @@ export const useOnboarding = () => {
   const [isaAnswers, setIsaAnswers] = useState<(number | null)[]>(Array(isaQuestions.length).fill(null))
 
   const tinDigits = tin.replace(/\D/g, '')
-  const isTinValid = tinDigits.length === 9 || tinDigits.length === 12
+  const isTinValid =
+    tinDigits.length === TIN_SHORT_LENGTH || tinDigits.length === TIN_LONG_LENGTH
   const tinError =
     tinDigits.length > 0 && !isTinValid ? 'TIN must contain exactly 9 or 12 digits.' : ''
 
