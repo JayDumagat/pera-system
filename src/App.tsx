@@ -27,9 +27,10 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
 
   const canSubmit =
-    email.trim().length >= 5 &&
+    isEmailValid &&
     password.trim().length >= 6 &&
     (mode === 'login' || fullName.trim().length >= 3)
 
@@ -535,18 +536,21 @@ function PeraPage({ onBack }: PeraPageProps) {
 }
 
 function App() {
-  const [stage, setStage] = useState<AppStage>('authentication')
-  const [auth, setAuth] = useState<AuthState>({
+  const initialAuthState: AuthState = {
     mode: 'login',
     fullName: '',
     email: '',
-  })
+  }
+  const [stage, setStage] = useState<AppStage>('authentication')
+  const [auth, setAuth] = useState<AuthState>(initialAuthState)
+  const [onboardingSessionId, setOnboardingSessionId] = useState(0)
 
   if (stage === 'authentication') {
     return (
       <AuthPage
         onAuthenticate={(nextAuth) => {
           setAuth(nextAuth)
+          setOnboardingSessionId((current) => current + 1)
           setStage('onboarding')
         }}
       />
@@ -556,6 +560,7 @@ function App() {
   if (stage === 'onboarding') {
     return (
       <OnboardingPage
+        key={onboardingSessionId}
         onComplete={() => setStage('dashboard')}
         onBackToAuth={() => setStage('authentication')}
       />
@@ -570,8 +575,14 @@ function App() {
     <DashboardPage
       auth={auth}
       onOpenPera={() => setStage('pera')}
-      onStartOnboarding={() => setStage('onboarding')}
-      onLogout={() => setStage('authentication')}
+      onStartOnboarding={() => {
+        setOnboardingSessionId((current) => current + 1)
+        setStage('onboarding')
+      }}
+      onLogout={() => {
+        setAuth(initialAuthState)
+        setStage('authentication')
+      }}
     />
   )
 }
