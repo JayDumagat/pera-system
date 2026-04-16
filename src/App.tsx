@@ -8,10 +8,11 @@ const panelAnimation = {
   exit: { opacity: 0, y: -12 },
   transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const },
 }
-const ONBOARDING_STEP_LABELS = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
-const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEP_LABELS.length - 1
+const ONBOARDING_STEPS = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
+const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEPS.length - 1
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const MIN_PASSWORD_LENGTH = 8
+const MIN_FULL_NAME_LENGTH = 3
 
 type AuthMode = 'login' | 'register'
 type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
@@ -36,7 +37,7 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
   const canSubmit =
     isEmailValid &&
     password.trim().length >= MIN_PASSWORD_LENGTH &&
-    (mode === 'login' || fullName.trim().length >= 3)
+    (mode === 'login' || fullName.trim().length >= MIN_FULL_NAME_LENGTH)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -194,7 +195,7 @@ function OnboardingPage({ onComplete, onBackToAuth }: OnboardingPageProps) {
             Back to Authentication
           </button>
           <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
-            {ONBOARDING_STEP_LABELS.map((label, index) => (
+            {ONBOARDING_STEPS.map((label, index) => (
               <div
                 key={label}
                 className={`border p-2 text-left text-sm ${
@@ -545,14 +546,14 @@ function App() {
   }
   const [stage, setStage] = useState<AppStage>('authentication')
   const [auth, setAuth] = useState<AuthState>(initialAuthState)
-  const [onboardingSessionId, setOnboardingSessionId] = useState(0)
+  const [onboardingResetCounter, setOnboardingResetCounter] = useState(0)
 
   if (stage === 'authentication') {
     return (
       <AuthPage
         onAuthenticate={(nextAuth) => {
           setAuth(nextAuth)
-          setOnboardingSessionId((current) => current + 1)
+          setOnboardingResetCounter((current) => current + 1)
           setStage('onboarding')
         }}
       />
@@ -562,7 +563,7 @@ function App() {
   if (stage === 'onboarding') {
     return (
       <OnboardingPage
-        key={onboardingSessionId}
+        key={onboardingResetCounter}
         onComplete={() => setStage('dashboard')}
         onBackToAuth={() => setStage('authentication')}
       />
@@ -578,7 +579,7 @@ function App() {
       auth={auth}
       onOpenPera={() => setStage('pera')}
       onStartOnboarding={() => {
-        setOnboardingSessionId((current) => current + 1)
+        setOnboardingResetCounter((current) => current + 1)
         setStage('onboarding')
       }}
       onLogout={() => {
