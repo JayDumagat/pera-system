@@ -471,21 +471,25 @@ function AppWorkspaceLayout({
             <p className="text-base font-semibold text-emerald-300">PERA System</p>
             <p className="mt-1 text-sm text-slate-300">Navigation</p>
             <div className="mt-4 space-y-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={item.onClick}
-                  disabled={activeNav === item.id}
-                  className={`min-h-11 w-full border px-3 text-left text-sm font-medium ${
-                    activeNav === item.id
-                      ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
-                      : 'border-slate-700 bg-slate-900 text-slate-200'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              {navItems.map((item) => {
+                const isActive = activeNav === item.id
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={!isActive ? item.onClick : undefined}
+                    disabled={isActive || !item.onClick}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`min-h-11 w-full border px-3 text-left text-sm font-medium ${
+                      isActive
+                        ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
+                        : 'border-slate-700 bg-slate-900 text-slate-200'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                )
+              })}
             </div>
             <button
               type="button"
