@@ -8,6 +8,7 @@ const panelAnimation = {
   exit: { opacity: 0, y: -12 },
   transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const },
 }
+const ONBOARDING_STEP_LABELS = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
 
 type AuthMode = 'login' | 'register'
 type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
@@ -27,7 +28,7 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+  const isEmailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())
 
   const canSubmit =
     isEmailValid &&
@@ -161,12 +162,10 @@ function OnboardingPage({ onComplete, onBackToAuth }: OnboardingPageProps) {
     previousStep,
   } = useOnboarding()
 
-  const stepLabels = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
-
   const handleNext = () => {
     if (!canMoveNext) return
 
-    if (step === 2) {
+    if (step === ONBOARDING_STEP_LABELS.length - 1) {
       onComplete()
       return
     }
@@ -192,7 +191,7 @@ function OnboardingPage({ onComplete, onBackToAuth }: OnboardingPageProps) {
             Back to Authentication
           </button>
           <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
-            {stepLabels.map((label, index) => (
+            {ONBOARDING_STEP_LABELS.map((label, index) => (
               <div
                 key={label}
                 className={`border p-2 text-left text-sm ${
