@@ -57,7 +57,7 @@ const isaQuestions: IsaQuestion[] = [
   },
 ]
 
-const banks = ['BDO', 'BPI', 'Metrobank', 'Landbank', 'UnionBank', 'GCash']
+const banks = ['BDO', 'BPI', 'Metrobank', 'LandBank', 'UnionBank', 'GCash']
 const TIN_MIN_LENGTH = 9
 const TIN_MAX_LENGTH = 12
 
