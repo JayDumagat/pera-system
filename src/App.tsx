@@ -181,8 +181,9 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
                 <button
                   key={provider}
                   type="button"
+                  disabled
                   aria-label={`Sign in with ${provider}`}
-                  className="min-h-11 border border-slate-700 bg-slate-900 px-3 text-sm font-medium text-slate-100 hover:border-emerald-500 hover:text-emerald-100"
+                  className="min-h-11 border border-slate-700 bg-slate-900 px-3 text-sm font-medium text-slate-400 opacity-70 disabled:cursor-not-allowed"
                 >
                   {provider}
                 </button>
