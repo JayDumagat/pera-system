@@ -52,83 +52,109 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
-      <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-xl">
-        <header className="border-b border-emerald-900 p-4">
-          <p className="text-base font-semibold text-emerald-300">Authentication</p>
-          <h1 className="mt-1 text-xl font-semibold leading-tight">Access your PERA account</h1>
-          <p className="mt-2 text-base text-slate-200">
-            Continue with login or create a new account to start onboarding.
+      <div className="w-full overflow-hidden border border-emerald-900 bg-emerald-950/80 md:max-w-5xl md:grid md:grid-cols-[1.1fr,1fr]">
+        <section className="hidden border-r border-emerald-900 bg-gradient-to-b from-emerald-900/40 via-emerald-950 to-slate-950 p-6 md:block">
+          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">PERA System</p>
+          <h1 className="mt-3 text-3xl font-semibold leading-tight">
+            Build your retirement fund with confidence.
+          </h1>
+          <p className="mt-3 text-base text-slate-200">
+            Sign in to manage your account, or create one to start secure onboarding.
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {(['login', 'register'] as const).map((currentMode) => (
-              <button
-                key={currentMode}
-                type="button"
-                onClick={() => setMode(currentMode)}
-                className={`min-h-11 border px-3 text-base font-medium capitalize ${
-                  mode === currentMode
-                    ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
-                    : 'border-slate-700 bg-slate-900 text-slate-200'
-                }`}
-              >
-                {currentMode}
-              </button>
+          <div className="mt-6 space-y-3">
+            {[
+              'Regulated PERA-ready onboarding',
+              'Investor suitability profiling',
+              'Secure account dashboard access',
+            ].map((item) => (
+              <p key={item} className="border border-emerald-800/70 bg-slate-950/60 p-3 text-sm text-slate-100">
+                {item}
+              </p>
             ))}
           </div>
-        </header>
+        </section>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-          {mode === 'register' && (
+        <section>
+          <header className="border-b border-emerald-900 p-4 md:p-6">
+            <p className="text-base font-semibold text-emerald-300">Authentication</p>
+            <h2 className="mt-1 text-xl font-semibold leading-tight">Access your PERA account</h2>
+            <p className="mt-2 text-sm text-slate-200">
+              {mode === 'login'
+                ? 'Sign in to continue to your dashboard.'
+                : 'Create a new account to begin onboarding.'}
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-slate-700 bg-slate-900 p-1">
+              {(['login', 'register'] as const).map((currentMode) => (
+                <button
+                  key={currentMode}
+                  type="button"
+                  onClick={() => setMode(currentMode)}
+                  className={`min-h-11 border px-3 text-sm font-semibold ${
+                    mode === currentMode
+                      ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
+                      : 'border-transparent text-slate-300'
+                  }`}
+                >
+                  {currentMode === 'login' ? 'Sign In' : 'Create Account'}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
+            {mode === 'register' && (
+              <div>
+                <label className="block text-sm font-medium text-slate-200" htmlFor="auth-full-name">
+                  Full Name
+                </label>
+                <input
+                  id="auth-full-name"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+                  placeholder="Juan Dela Cruz"
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-slate-200" htmlFor="auth-full-name">
-                Full Name
+              <label className="block text-sm font-medium text-slate-200" htmlFor="auth-email">
+                Email
               </label>
               <input
-                id="auth-full-name"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
+                id="auth-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
-                placeholder="Juan Dela Cruz"
+                placeholder="name@email.com"
               />
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-200" htmlFor="auth-email">
-              Email
-            </label>
-            <input
-              id="auth-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
-              placeholder="name@email.com"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-200" htmlFor="auth-password">
+                Password
+              </label>
+              <input
+                id="auth-password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+                placeholder="••••••••"
+              />
+              <p className="mt-1 text-xs text-slate-400">Minimum 8 characters required.</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-200" htmlFor="auth-password">
-              Password
-            </label>
-            <input
-              id="auth-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={!canSubmit}
-            className="min-h-11 w-full border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
-          >
-            {mode === 'login' ? 'Continue to Onboarding' : 'Create Account & Continue'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="min-h-11 w-full border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
+            >
+              {mode === 'login' ? 'Sign In' : 'Create Account & Continue'}
+            </button>
+          </form>
+        </section>
       </div>
     </main>
   )
@@ -610,7 +636,7 @@ function App() {
         onAuthenticate={(nextAuth) => {
           setAuth(nextAuth)
           setOnboardingResetCounter((current) => current + 1)
-          setStage('onboarding')
+          setStage(nextAuth.mode === 'login' ? 'dashboard' : 'onboarding')
         }}
       />
     )
