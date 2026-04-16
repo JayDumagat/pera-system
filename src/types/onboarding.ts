@@ -1,13 +1,7 @@
-export enum IsaScore {
-  Conservative = 'Conservative',
-  Moderate = 'Moderate',
-  Aggressive = 'Aggressive',
-}
-
-export type VerificationStatus = 'pending' | 'verified'
+export type IsaScore = 'Conservative' | 'Moderate' | 'Aggressive'
 
 export interface InvestorProfile {
-  isaScore: IsaScore | null
+  isaScore: IsaScore
   ageBracket: string
-  verificationStatus: VerificationStatus
+  isVerified: boolean
 }
