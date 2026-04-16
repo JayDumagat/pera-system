@@ -13,6 +13,7 @@ const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEPS.length - 1
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const MIN_PASSWORD_LENGTH = 8
 const MIN_FULL_NAME_LENGTH = 3
+const OAUTH_PROVIDERS = ['Google', 'Microsoft', 'Facebook']
 
 type AuthMode = 'login' | 'register'
 type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
@@ -52,7 +53,7 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
-      <div className="w-full overflow-hidden border border-emerald-900 bg-emerald-950/80 md:max-w-5xl md:grid md:grid-cols-[1.1fr,1fr]">
+      <div className="w-full overflow-hidden border border-emerald-900 bg-emerald-950/80 md:max-w-5xl md:grid md:grid-cols-[1.05fr,1fr]">
         <section className="hidden border-r border-emerald-900 bg-gradient-to-b from-emerald-900/40 via-emerald-950 to-slate-950 p-6 md:block">
           <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">PERA System</p>
           <h1 className="mt-3 text-3xl font-semibold leading-tight">
@@ -76,8 +77,10 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
 
         <section>
           <header className="border-b border-emerald-900 p-4 md:p-6">
-            <p className="text-base font-semibold text-emerald-300">Authentication</p>
-            <h2 className="mt-1 text-xl font-semibold leading-tight">Access your PERA account</h2>
+            <p className="text-base font-semibold text-emerald-300">Account Login</p>
+            <h2 className="mt-1 text-xl font-semibold leading-tight">
+              {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            </h2>
             <p className="mt-2 text-sm text-slate-200">
               {mode === 'login'
                 ? 'Sign in to continue to your dashboard.'
@@ -140,10 +143,20 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                aria-describedby="auth-password-helper"
                 className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-slate-400">Minimum 8 characters required.</p>
+              <p id="auth-password-helper" className="mt-1 text-xs text-slate-400">
+                Minimum 8 characters required.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">
+                {mode === 'login' ? 'Use your secure account credentials.' : 'Set a secure password to continue.'}
+              </span>
+              {mode === 'login' && <span className="font-medium text-emerald-300">Forgot password? Coming soon.</span>}
             </div>
 
             <button
@@ -153,6 +166,30 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
             >
               {mode === 'login' ? 'Sign In' : 'Create Account & Continue'}
             </button>
+
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-700" />
+              </div>
+              <p className="relative mx-auto w-fit bg-emerald-950/80 px-2 text-xs uppercase tracking-wide text-slate-400">
+                Or continue with
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {OAUTH_PROVIDERS.map((provider) => (
+                <button
+                  key={provider}
+                  type="button"
+                  disabled
+                  aria-label={`Sign in with ${provider}`}
+                  className="min-h-11 border border-slate-700 bg-slate-900 px-3 text-sm font-medium text-slate-400 opacity-70 disabled:cursor-not-allowed"
+                >
+                  {provider}
+                </button>
+              ))}
+            </div>
+            <p className="text-center text-xs text-slate-400">OAuth sign-in options are shown for demo UI flow.</p>
           </form>
         </section>
       </div>
