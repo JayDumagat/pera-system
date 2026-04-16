@@ -13,6 +13,7 @@ const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEPS.length - 1
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 const MIN_PASSWORD_LENGTH = 8
 const MIN_FULL_NAME_LENGTH = 3
+const OAUTH_PROVIDERS = ['Google', 'Microsoft', 'Facebook']
 
 type AuthMode = 'login' | 'register'
 type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
@@ -32,7 +33,6 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const oauthProviders = ['Google', 'Microsoft', 'Facebook']
   const isEmailValid = EMAIL_PATTERN.test(email.trim())
 
   const canSubmit =
@@ -143,21 +143,20 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                aria-describedby="auth-password-helper"
                 className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-slate-400">Minimum 8 characters required.</p>
+              <p id="auth-password-helper" className="mt-1 text-xs text-slate-400">
+                Minimum 8 characters required.
+              </p>
             </div>
 
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-400">
                 {mode === 'login' ? 'Use your secure account credentials.' : 'Set a secure password to continue.'}
               </span>
-              {mode === 'login' && (
-                <button type="button" className="font-medium text-emerald-300 hover:text-emerald-200">
-                  Forgot password?
-                </button>
-              )}
+              {mode === 'login' && <span className="font-medium text-emerald-300">Forgot password? Coming soon.</span>}
             </div>
 
             <button
@@ -178,10 +177,11 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {oauthProviders.map((provider) => (
+              {OAUTH_PROVIDERS.map((provider) => (
                 <button
                   key={provider}
                   type="button"
+                  aria-label={`Sign in with ${provider}`}
                   className="min-h-11 border border-slate-700 bg-slate-900 px-3 text-sm font-medium text-slate-100 hover:border-emerald-500 hover:text-emerald-100"
                 >
                   {provider}
