@@ -9,6 +9,9 @@ const panelAnimation = {
   transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const },
 }
 const ONBOARDING_STEP_LABELS = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
+const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEP_LABELS.length - 1
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const MIN_PASSWORD_LENGTH = 8
 
 type AuthMode = 'login' | 'register'
 type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
@@ -28,11 +31,11 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const isEmailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())
+  const isEmailValid = EMAIL_PATTERN.test(email.trim())
 
   const canSubmit =
     isEmailValid &&
-    password.trim().length >= 6 &&
+    password.trim().length >= MIN_PASSWORD_LENGTH &&
     (mode === 'login' || fullName.trim().length >= 3)
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -165,7 +168,7 @@ function OnboardingPage({ onComplete, onBackToAuth }: OnboardingPageProps) {
   const handleNext = () => {
     if (!canMoveNext) return
 
-    if (step === ONBOARDING_STEP_LABELS.length - 1) {
+    if (step === FINAL_ONBOARDING_STEP_INDEX) {
       onComplete()
       return
     }
@@ -437,7 +440,7 @@ function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: Dashbo
       <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-3xl">
         <header className="border-b border-emerald-900 p-4">
           <p className="text-base font-semibold text-emerald-300">Dashboard</p>
-          <h1 className="mt-1 text-xl font-semibold leading-tight">Welcome to Pera System</h1>
+          <h1 className="mt-1 text-xl font-semibold leading-tight">Welcome to PERA System</h1>
           <p className="mt-2 text-base text-slate-200">
             Signed in as <span className="font-semibold text-emerald-200">{auth.email}</span>
           </p>
