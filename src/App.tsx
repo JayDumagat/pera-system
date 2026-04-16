@@ -489,13 +489,10 @@ function AppWorkspaceLayout({
         <div className="md:grid md:grid-cols-[240px,1fr]">
           <aside className="border-b border-slate-800 p-4 md:border-b-0 md:border-r">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Internal <span className="sr-only">application environment</span>
+              Internal Application Environment
             </p>
             <p className="mt-2 text-lg font-semibold text-white">PERA System</p>
-            <p
-              aria-label="Authenticated session active"
-              className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200"
-            >
+            <p className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200">
               Authenticated Session
             </p>
             <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Navigation</p>
@@ -542,10 +539,7 @@ function AppWorkspaceLayout({
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold leading-tight">{title}</h1>
                 </div>
-                <p
-                  aria-label="Access level: Internal only"
-                  className="border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300"
-                >
+                <p className="border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300">
                   Access: Internal Only
                 </p>
               </div>
