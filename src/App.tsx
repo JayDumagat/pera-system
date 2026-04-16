@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { useState, type FormEvent } from 'react'
 import { useOnboarding } from './hooks/useOnboarding'
 
 const panelAnimation = {
@@ -7,8 +8,138 @@ const panelAnimation = {
   exit: { opacity: 0, y: -12 },
   transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const },
 }
+const ONBOARDING_STEPS = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
+const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEPS.length - 1
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const MIN_PASSWORD_LENGTH = 8
+const MIN_FULL_NAME_LENGTH = 3
 
-function App() {
+type AuthMode = 'login' | 'register'
+type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
+
+interface AuthState {
+  mode: AuthMode
+  fullName: string
+  email: string
+}
+
+interface AuthPageProps {
+  onAuthenticate: (auth: AuthState) => void
+}
+
+function AuthPage({ onAuthenticate }: AuthPageProps) {
+  const [mode, setMode] = useState<AuthMode>('login')
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const isEmailValid = EMAIL_PATTERN.test(email.trim())
+
+  const canSubmit =
+    isEmailValid &&
+    password.trim().length >= MIN_PASSWORD_LENGTH &&
+    (mode === 'login' || fullName.trim().length >= MIN_FULL_NAME_LENGTH)
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!canSubmit) return
+
+    onAuthenticate({
+      mode,
+      fullName: mode === 'register' ? fullName.trim() : '',
+      email: email.trim(),
+    })
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
+      <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-xl">
+        <header className="border-b border-emerald-900 p-4">
+          <p className="text-base font-semibold text-emerald-300">Authentication</p>
+          <h1 className="mt-1 text-xl font-semibold leading-tight">Access your PERA account</h1>
+          <p className="mt-2 text-base text-slate-200">
+            Continue with login or create a new account to start onboarding.
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {(['login', 'register'] as const).map((currentMode) => (
+              <button
+                key={currentMode}
+                type="button"
+                onClick={() => setMode(currentMode)}
+                className={`min-h-11 border px-3 text-base font-medium capitalize ${
+                  mode === currentMode
+                    ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
+                    : 'border-slate-700 bg-slate-900 text-slate-200'
+                }`}
+              >
+                {currentMode}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
+          {mode === 'register' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-200" htmlFor="auth-full-name">
+                Full Name
+              </label>
+              <input
+                id="auth-full-name"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+                placeholder="Juan Dela Cruz"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-slate-200" htmlFor="auth-email">
+              Email
+            </label>
+            <input
+              id="auth-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+              placeholder="name@email.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-200" htmlFor="auth-password">
+              Password
+            </label>
+            <input
+              id="auth-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="min-h-11 w-full border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
+          >
+            {mode === 'login' ? 'Continue to Onboarding' : 'Create Account & Continue'}
+          </button>
+        </form>
+      </div>
+    </main>
+  )
+}
+
+interface OnboardingPageProps {
+  onComplete: () => void
+  onBackToAuth: () => void
+}
+
+function OnboardingPage({ onComplete, onBackToAuth }: OnboardingPageProps) {
   const {
     step,
     fullName,
@@ -30,13 +161,21 @@ function App() {
     isaAnswers,
     answerIsaQuestion,
     visibleQuestionCount,
-    investorProfile,
     canMoveNext,
     nextStep,
     previousStep,
   } = useOnboarding()
 
-  const stepLabels = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability', 'Success']
+  const handleNext = () => {
+    if (!canMoveNext) return
+
+    if (step === FINAL_ONBOARDING_STEP_INDEX) {
+      onComplete()
+      return
+    }
+
+    nextStep()
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
@@ -48,8 +187,15 @@ function App() {
             Complete your onboarding with confidence. Your information is reviewed through regulated
             Philippine open-finance rails.
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-            {stepLabels.map((label, index) => (
+          <button
+            type="button"
+            onClick={onBackToAuth}
+            className="mt-4 min-h-11 border border-slate-700 px-4 text-sm text-slate-200"
+          >
+            Back to Authentication
+          </button>
+          <div className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
+            {ONBOARDING_STEPS.map((label, index) => (
               <div
                 key={label}
                 className={`border p-2 text-left text-sm ${
@@ -248,39 +394,12 @@ function App() {
                 </div>
               </motion.div>
             )}
-
-            {step === 3 && (
-              <motion.div key="step-4" {...panelAnimation} className="space-y-4">
-                <h2 className="text-lg font-semibold">Success Terminal</h2>
-                <p className="text-base text-emerald-200">
-                  Setup complete. Your account is now ready for verified contributions.
-                </p>
-
-                <div className="border border-emerald-700 bg-slate-900 p-4">
-                  <p className="text-xs uppercase tracking-wider text-slate-300">Digital Receipt</p>
-                  <dl className="mt-3 space-y-2 text-sm">
-                    <div className="flex justify-between gap-3 border-b border-slate-800 pb-2">
-                      <dt className="text-slate-400">Verification Status</dt>
-                      <dd className="font-semibold text-emerald-200">{investorProfile.verificationStatus}</dd>
-                    </div>
-                    <div className="flex justify-between gap-3 border-b border-slate-800 pb-2">
-                      <dt className="text-slate-400">Age Bracket</dt>
-                      <dd className="font-semibold text-white">{investorProfile.ageBracket}</dd>
-                    </div>
-                    <div className="flex justify-between gap-3 pb-1">
-                      <dt className="text-slate-400">ISA Risk Profile</dt>
-                      <dd className="font-semibold text-white">{investorProfile.isaScore}</dd>
-                    </div>
-                  </dl>
-                </div>
-              </motion.div>
-            )}
           </AnimatePresence>
         </section>
 
         <footer className="fixed inset-x-3 bottom-3 border border-emerald-900 bg-emerald-950 p-3 md:static md:inset-auto md:border-x-0 md:border-b-0 md:border-t">
           <div className="flex gap-2 md:justify-end">
-            {step > 0 && step < 3 && (
+            {step > 0 && (
               <button
                 type="button"
                 onClick={previousStep}
@@ -290,33 +409,184 @@ function App() {
               </button>
             )}
 
-            {step < 3 && (
-              <button
-                type="button"
-                onClick={nextStep}
-                disabled={!canMoveNext}
-                className="min-h-11 flex-1 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500 md:max-w-56 md:flex-none"
-              >
-                {step === 0
-                  ? 'Submit for Verification'
-                  : step === 1
-                    ? 'Confirm Contribution'
-                    : 'Finalize Assessment'}
-              </button>
-            )}
-
-            {step === 3 && (
-              <button
-                type="button"
-                className="min-h-11 flex-1 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white md:max-w-56 md:flex-none"
-              >
-                Start Investing
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canMoveNext}
+              className="min-h-11 flex-1 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500 md:max-w-56 md:flex-none"
+            >
+              {step === 0
+                ? 'Submit for Verification'
+                : step === 1
+                  ? 'Confirm Contribution'
+                  : 'Complete Onboarding'}
+            </button>
           </div>
         </footer>
       </div>
     </main>
+  )
+}
+
+interface DashboardPageProps {
+  auth: AuthState
+  onOpenPera: () => void
+  onStartOnboarding: () => void
+  onLogout: () => void
+}
+
+function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: DashboardPageProps) {
+  return (
+    <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
+      <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-3xl">
+        <header className="border-b border-emerald-900 p-4">
+          <p className="text-base font-semibold text-emerald-300">Dashboard</p>
+          <h1 className="mt-1 text-xl font-semibold leading-tight">Welcome to PERA System</h1>
+          <p className="mt-2 text-base text-slate-200">
+            Signed in as <span className="font-semibold text-emerald-200">{auth.email}</span>
+          </p>
+        </header>
+
+        <section className="grid gap-4 p-4 md:grid-cols-2 md:p-6">
+          <article className="border border-slate-700 bg-slate-900 p-4">
+            <p className="text-xs uppercase tracking-wider text-slate-400">Account</p>
+            <p className="mt-2 text-base font-semibold text-white capitalize">{auth.mode} profile</p>
+            <p className="mt-1 text-sm text-slate-300">
+              {auth.fullName ? auth.fullName : 'Authenticated investor account'}
+            </p>
+          </article>
+          <article className="border border-slate-700 bg-slate-900 p-4">
+            <p className="text-xs uppercase tracking-wider text-slate-400">Quick Actions</p>
+            <p className="mt-2 text-base font-semibold text-white">Manage your retirement flow</p>
+            <p className="mt-1 text-sm text-slate-300">Open PERA details or revisit onboarding data.</p>
+          </article>
+        </section>
+
+        <footer className="border-t border-emerald-900 p-4">
+          <div className="grid gap-2 md:grid-cols-3">
+            <button
+              type="button"
+              onClick={onOpenPera}
+              className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white"
+            >
+              Open PERA Page
+            </button>
+            <button
+              type="button"
+              onClick={onStartOnboarding}
+              className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100"
+            >
+              Re-open Onboarding
+            </button>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100"
+            >
+              Logout
+            </button>
+          </div>
+        </footer>
+      </div>
+    </main>
+  )
+}
+
+interface PeraPageProps {
+  onBack: () => void
+}
+
+function PeraPage({ onBack }: PeraPageProps) {
+  return (
+    <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
+      <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-3xl">
+        <header className="border-b border-emerald-900 p-4">
+          <p className="text-base font-semibold text-emerald-300">PERA Page</p>
+          <h1 className="mt-1 text-xl font-semibold leading-tight">Personal Equity and Retirement Account</h1>
+          <p className="mt-2 text-base text-slate-200">
+            Review retirement account details, contribution guidance, and tax-advantaged context.
+          </p>
+        </header>
+
+        <section className="space-y-4 p-4 md:p-6">
+          <article className="border border-slate-700 bg-slate-900 p-4">
+            <h2 className="text-base font-semibold text-white">Contribution Notes</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              PERA is designed for long-term retirement goals, with incentives tied to regulated
+              contribution behavior.
+            </p>
+          </article>
+          <article className="border border-slate-700 bg-slate-900 p-4">
+            <h2 className="text-base font-semibold text-white">Tax Benefit Reminder</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Eligible contributions may qualify for tax benefits under current PERA policy rules.
+            </p>
+          </article>
+        </section>
+
+        <footer className="border-t border-emerald-900 p-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white"
+          >
+            Back to Dashboard
+          </button>
+        </footer>
+      </div>
+    </main>
+  )
+}
+
+function App() {
+  const initialAuthState: AuthState = {
+    mode: 'login',
+    fullName: '',
+    email: '',
+  }
+  const [stage, setStage] = useState<AppStage>('authentication')
+  const [auth, setAuth] = useState<AuthState>(initialAuthState)
+  const [onboardingResetCounter, setOnboardingResetCounter] = useState(0)
+
+  if (stage === 'authentication') {
+    return (
+      <AuthPage
+        onAuthenticate={(nextAuth) => {
+          setAuth(nextAuth)
+          setOnboardingResetCounter((current) => current + 1)
+          setStage('onboarding')
+        }}
+      />
+    )
+  }
+
+  if (stage === 'onboarding') {
+    return (
+      <OnboardingPage
+        key={onboardingResetCounter}
+        onComplete={() => setStage('dashboard')}
+        onBackToAuth={() => setStage('authentication')}
+      />
+    )
+  }
+
+  if (stage === 'pera') {
+    return <PeraPage onBack={() => setStage('dashboard')} />
+  }
+
+  return (
+    <DashboardPage
+      auth={auth}
+      onOpenPera={() => setStage('pera')}
+      onStartOnboarding={() => {
+        setOnboardingResetCounter((current) => current + 1)
+        setStage('onboarding')
+      }}
+      onLogout={() => {
+        setAuth(initialAuthState)
+        setStage('authentication')
+      }}
+    />
   )
 }
 
