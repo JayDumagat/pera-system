@@ -244,7 +244,7 @@ function OnboardingPage({ auth, onComplete, onBackToAuth }: OnboardingPageProps)
             key={label}
             className={`border p-2 text-left text-sm ${
               index <= step
-                ? 'border-emerald-500 bg-emerald-900/35 text-emerald-100'
+                ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
                 : 'border-slate-700 bg-slate-900 text-slate-300'
             }`}
           >
@@ -488,14 +488,13 @@ function AppWorkspaceLayout({
       <div className="mx-auto w-full border border-slate-800 bg-slate-950 md:max-w-7xl">
         <div className="md:grid md:grid-cols-[240px,1fr]">
           <aside className="border-b border-slate-800 p-4 md:border-b-0 md:border-r">
-            <p
-              aria-label="Internal"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
-            >
-              Internal
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Internal</p>
             <p className="mt-2 text-lg font-semibold text-white">PERA System</p>
-            <p className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200">
+            <p
+              aria-label="Authenticated session active"
+              role="status"
+              className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200"
+            >
               Authenticated Session
             </p>
             <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Navigation</p>
