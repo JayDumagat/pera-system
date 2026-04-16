@@ -519,9 +519,9 @@ function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: Dashbo
       sectionLabel="Dashboard"
       title="Welcome to PERA System"
       description={
-        <>
+        <p>
           Signed in as <span className="font-semibold text-emerald-200">{auth.email}</span>
-        </>
+        </p>
       }
       activeNav="dashboard"
       onOpenPera={onOpenPera}
@@ -566,23 +566,10 @@ function PeraPage({ onBack, onLogout }: PeraPageProps) {
     <AppWorkspaceLayout
       sectionLabel="PERA Page"
       title="Personal Equity and Retirement Account"
-      description={
-        <p>
-          Review retirement account details, contribution guidance, and tax-advantaged context.
-        </p>
-      }
+      description="Review retirement account details, contribution guidance, and tax-advantaged context."
       activeNav="pera"
       onOpenDashboard={onBack}
       onLogout={onLogout}
-      footer={
-        <button
-          type="button"
-          onClick={onBack}
-          className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white"
-        >
-          Back to Dashboard
-        </button>
-      }
     >
       <section className="space-y-4">
         <article className="border border-slate-700 bg-slate-900 p-4">
