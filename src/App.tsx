@@ -151,7 +151,7 @@ function AuthPage({ onAuthenticate }: AuthPageProps) {
               disabled={!canSubmit}
               className="min-h-11 w-full border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
             >
-              {mode === 'login' ? 'Sign In to Dashboard' : 'Create Account & Continue'}
+              {mode === 'login' ? 'Sign In' : 'Create Account & Continue'}
             </button>
           </form>
         </section>
