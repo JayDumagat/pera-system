@@ -500,7 +500,7 @@ function AppWorkspaceLayout({
             </button>
           </aside>
 
-          <div className="flex min-h-[70vh] flex-col">
+          <div className="flex flex-1 flex-col">
             <header className="border-b border-emerald-900 p-4">
               <p className="text-base font-semibold text-emerald-300">{sectionLabel}</p>
               <h1 className="mt-1 text-xl font-semibold leading-tight">{title}</h1>
