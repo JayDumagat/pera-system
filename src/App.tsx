@@ -488,7 +488,12 @@ function AppWorkspaceLayout({
       <div className="mx-auto w-full border border-slate-800 bg-slate-950 md:max-w-7xl">
         <div className="md:grid md:grid-cols-[240px,1fr]">
           <aside className="border-b border-slate-800 p-4 md:border-b-0 md:border-r">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Internal</p>
+            <p
+              aria-label="Internal"
+              className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
+            >
+              Internal
+            </p>
             <p className="mt-2 text-lg font-semibold text-white">PERA System</p>
             <p className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200">
               Authenticated Session
@@ -537,7 +542,11 @@ function AppWorkspaceLayout({
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold leading-tight">{title}</h1>
                 </div>
-                <p className="border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300">
+                <p
+                  aria-label="Access level: Internal only"
+                  role="status"
+                  className="border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300"
+                >
                   Access: Internal Only
                 </p>
               </div>
