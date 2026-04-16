@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useOnboarding } from './hooks/useOnboarding'
 
 const panelAnimation = {
@@ -435,106 +435,171 @@ interface DashboardPageProps {
   onLogout: () => void
 }
 
-function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: DashboardPageProps) {
+interface AppWorkspaceLayoutProps {
+  sectionLabel: string
+  title: string
+  description: ReactNode
+  activeNav: 'dashboard' | 'pera'
+  onOpenDashboard?: () => void
+  onOpenPera?: () => void
+  onLogout: () => void
+  children: ReactNode
+  footer?: ReactNode
+}
+
+function AppWorkspaceLayout({
+  sectionLabel,
+  title,
+  description,
+  activeNav,
+  onOpenDashboard,
+  onOpenPera,
+  onLogout,
+  children,
+  footer,
+}: AppWorkspaceLayoutProps) {
+  const navItems = [
+    { id: 'dashboard' as const, label: 'Dashboard', onClick: onOpenDashboard },
+    { id: 'pera' as const, label: 'PERA Page', onClick: onOpenPera },
+  ]
+
   return (
-    <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
-      <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-3xl">
-        <header className="border-b border-emerald-900 p-4">
-          <p className="text-base font-semibold text-emerald-300">Dashboard</p>
-          <h1 className="mt-1 text-xl font-semibold leading-tight">Welcome to PERA System</h1>
-          <p className="mt-2 text-base text-slate-200">
-            Signed in as <span className="font-semibold text-emerald-200">{auth.email}</span>
-          </p>
-        </header>
-
-        <section className="grid gap-4 p-4 md:grid-cols-2 md:p-6">
-          <article className="border border-slate-700 bg-slate-900 p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-400">Account</p>
-            <p className="mt-2 text-base font-semibold text-white capitalize">{auth.mode} profile</p>
-            <p className="mt-1 text-sm text-slate-300">
-              {auth.fullName ? auth.fullName : 'Authenticated investor account'}
-            </p>
-          </article>
-          <article className="border border-slate-700 bg-slate-900 p-4">
-            <p className="text-xs uppercase tracking-wider text-slate-400">Quick Actions</p>
-            <p className="mt-2 text-base font-semibold text-white">Manage your retirement flow</p>
-            <p className="mt-1 text-sm text-slate-300">Open PERA details or revisit onboarding data.</p>
-          </article>
-        </section>
-
-        <footer className="border-t border-emerald-900 p-4">
-          <div className="grid gap-2 md:grid-cols-3">
-            <button
-              type="button"
-              onClick={onOpenPera}
-              className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white"
-            >
-              Open PERA Page
-            </button>
-            <button
-              type="button"
-              onClick={onStartOnboarding}
-              className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100"
-            >
-              Re-open Onboarding
-            </button>
+    <main className="min-h-screen bg-slate-950 p-3 text-white md:p-6">
+      <div className="mx-auto w-full border border-emerald-900 bg-emerald-950/80 md:max-w-6xl">
+        <div className="md:grid md:grid-cols-[240px,1fr]">
+          <aside className="border-b border-emerald-900 p-4 md:border-b-0 md:border-r">
+            <p className="text-base font-semibold text-emerald-300">PERA System</p>
+            <p className="mt-1 text-sm text-slate-300">Navigation</p>
+            <div className="mt-4 space-y-2">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={item.onClick}
+                  disabled={activeNav === item.id}
+                  className={`min-h-11 w-full border px-3 text-left text-sm font-medium ${
+                    activeNav === item.id
+                      ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
+                      : 'border-slate-700 bg-slate-900 text-slate-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={onLogout}
-              className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100"
+              className="mt-4 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-left text-sm text-slate-100"
             >
               Logout
             </button>
+          </aside>
+
+          <div className="flex min-h-[70vh] flex-col">
+            <header className="border-b border-emerald-900 p-4">
+              <p className="text-base font-semibold text-emerald-300">{sectionLabel}</p>
+              <h1 className="mt-1 text-xl font-semibold leading-tight">{title}</h1>
+              <div className="mt-2 text-base text-slate-200">{description}</div>
+            </header>
+
+            <section className="flex-1 p-4 md:p-6">{children}</section>
+
+            {footer ? <footer className="border-t border-emerald-900 p-4">{footer}</footer> : null}
           </div>
-        </footer>
+        </div>
       </div>
     </main>
   )
 }
 
-interface PeraPageProps {
-  onBack: () => void
-}
-
-function PeraPage({ onBack }: PeraPageProps) {
+function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: DashboardPageProps) {
   return (
-    <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
-      <div className="w-full border border-emerald-900 bg-emerald-950/80 md:max-w-3xl">
-        <header className="border-b border-emerald-900 p-4">
-          <p className="text-base font-semibold text-emerald-300">PERA Page</p>
-          <h1 className="mt-1 text-xl font-semibold leading-tight">Personal Equity and Retirement Account</h1>
-          <p className="mt-2 text-base text-slate-200">
-            Review retirement account details, contribution guidance, and tax-advantaged context.
-          </p>
-        </header>
-
-        <section className="space-y-4 p-4 md:p-6">
-          <article className="border border-slate-700 bg-slate-900 p-4">
-            <h2 className="text-base font-semibold text-white">Contribution Notes</h2>
-            <p className="mt-2 text-sm text-slate-300">
-              PERA is designed for long-term retirement goals, with incentives tied to regulated
-              contribution behavior.
-            </p>
-          </article>
-          <article className="border border-slate-700 bg-slate-900 p-4">
-            <h2 className="text-base font-semibold text-white">Tax Benefit Reminder</h2>
-            <p className="mt-2 text-sm text-slate-300">
-              Eligible contributions may qualify for tax benefits under current PERA policy rules.
-            </p>
-          </article>
-        </section>
-
-        <footer className="border-t border-emerald-900 p-4">
+    <AppWorkspaceLayout
+      sectionLabel="Dashboard"
+      title="Welcome to PERA System"
+      description={
+        <>
+          Signed in as <span className="font-semibold text-emerald-200">{auth.email}</span>
+        </>
+      }
+      activeNav="dashboard"
+      onOpenPera={onOpenPera}
+      onLogout={onLogout}
+      footer={
+        <div className="grid gap-2 md:max-w-sm">
           <button
             type="button"
-            onClick={onBack}
-            className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white"
+            onClick={onStartOnboarding}
+            className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100"
           >
-            Back to Dashboard
+            Re-open Onboarding
           </button>
-        </footer>
-      </div>
-    </main>
+        </div>
+      }
+    >
+      <section className="grid gap-4 md:grid-cols-2">
+        <article className="border border-slate-700 bg-slate-900 p-4">
+          <p className="text-xs uppercase tracking-wider text-slate-400">Account</p>
+          <p className="mt-2 text-base font-semibold text-white capitalize">{auth.mode} profile</p>
+          <p className="mt-1 text-sm text-slate-300">
+            {auth.fullName ? auth.fullName : 'Authenticated investor account'}
+          </p>
+        </article>
+        <article className="border border-slate-700 bg-slate-900 p-4">
+          <p className="text-xs uppercase tracking-wider text-slate-400">Quick Actions</p>
+          <p className="mt-2 text-base font-semibold text-white">Manage your retirement flow</p>
+          <p className="mt-1 text-sm text-slate-300">Open PERA details or revisit onboarding data.</p>
+        </article>
+      </section>
+    </AppWorkspaceLayout>
+  )
+}
+
+interface PeraPageProps {
+  onBack: () => void
+  onLogout: () => void
+}
+
+function PeraPage({ onBack, onLogout }: PeraPageProps) {
+  return (
+    <AppWorkspaceLayout
+      sectionLabel="PERA Page"
+      title="Personal Equity and Retirement Account"
+      description={
+        <p>
+          Review retirement account details, contribution guidance, and tax-advantaged context.
+        </p>
+      }
+      activeNav="pera"
+      onOpenDashboard={onBack}
+      onLogout={onLogout}
+      footer={
+        <button
+          type="button"
+          onClick={onBack}
+          className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white"
+        >
+          Back to Dashboard
+        </button>
+      }
+    >
+      <section className="space-y-4">
+        <article className="border border-slate-700 bg-slate-900 p-4">
+          <h2 className="text-base font-semibold text-white">Contribution Notes</h2>
+          <p className="mt-2 text-sm text-slate-300">
+            PERA is designed for long-term retirement goals, with incentives tied to regulated
+            contribution behavior.
+          </p>
+        </article>
+        <article className="border border-slate-700 bg-slate-900 p-4">
+          <h2 className="text-base font-semibold text-white">Tax Benefit Reminder</h2>
+          <p className="mt-2 text-sm text-slate-300">
+            Eligible contributions may qualify for tax benefits under current PERA policy rules.
+          </p>
+        </article>
+      </section>
+    </AppWorkspaceLayout>
   )
 }
 
@@ -571,7 +636,15 @@ function App() {
   }
 
   if (stage === 'pera') {
-    return <PeraPage onBack={() => setStage('dashboard')} />
+    return (
+      <PeraPage
+        onBack={() => setStage('dashboard')}
+        onLogout={() => {
+          setAuth(initialAuthState)
+          setStage('authentication')
+        }}
+      />
+    )
   }
 
   return (
