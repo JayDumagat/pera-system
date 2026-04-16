@@ -14,8 +14,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  border-radius: 4px;
+*,
+*::before,
+*::after {
+  border-radius: 0;
   box-shadow: none;
 }
 
