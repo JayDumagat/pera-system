@@ -69,7 +69,7 @@ const formatTin = (value: string) => {
 
 const toIsaScore = (total: number): IsaScore => {
   if (total <= 10) return 'Conservative'
-  if (total <= 17) return 'Moderate'
+  if (total <= 18) return 'Moderate'
   return 'Aggressive'
 }
 
@@ -77,7 +77,7 @@ export const useOnboarding = () => {
   const [step, setStep] = useState(0)
   const [fullName, setFullName] = useState('')
   const [tin, setTin] = useState('')
-  const [ageBracket, setAgeBracket] = useState('35-44')
+  const [ageBracket, setAgeBracket] = useState('31-40')
   const [selectedBank, setSelectedBank] = useState<string | null>(null)
   const [accounts, setAccounts] = useState<ProvisioningAccount[]>([])
   const [isaAnswers, setIsaAnswers] = useState<(number | null)[]>(Array(isaQuestions.length).fill(null))
