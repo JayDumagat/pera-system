@@ -517,7 +517,7 @@ function AppWorkspaceLayout({
             </div>
             <div className="mt-4 border border-slate-800 bg-slate-900 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-400">Signed in as</p>
-              <p className="mt-1 break-all text-sm font-medium text-slate-100">{auth.email || 'Authenticated user'}</p>
+              <p className="mt-1 break-all text-sm font-medium text-slate-100">{auth.email}</p>
             </div>
             <button
               type="button"
