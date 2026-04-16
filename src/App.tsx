@@ -1,209 +1,172 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState, type FormEvent, type ReactNode } from 'react'
-import { useOnboarding } from './hooks/useOnboarding'
+import { useMemo, useState } from 'react'
+import { useOnboarding, type ProvisioningAccount } from './hooks/useOnboarding'
+
+type Page = 'Dashboard' | 'Trading' | 'PERA/Portfolios' | 'Learning Hub' | 'Settings'
+
+interface ToastState {
+  id: number
+  message: string
+}
+
+const pages: { label: Page; icon: string }[] = [
+  { label: 'Dashboard', icon: '◫' },
+  { label: 'Trading', icon: '⌁' },
+  { label: 'PERA/Portfolios', icon: '◧' },
+  { label: 'Learning Hub', icon: '◩' },
+  { label: 'Settings', icon: '◌' },
+]
+
+const onboardingSteps = [
+  'Identity & KYC',
+  'Portfolio Provisioning',
+  'Investor Suitability Assessment',
+  'Success Terminal',
+]
 
 const panelAnimation = {
-  initial: { opacity: 0, y: 12 },
+  initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -12 },
-  transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const },
-}
-const ONBOARDING_STEPS = ['Identity & KYC', 'Account Provisioning', 'Investor Suitability']
-const FINAL_ONBOARDING_STEP_INDEX = ONBOARDING_STEPS.length - 1
-const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-const MIN_PASSWORD_LENGTH = 8
-const MIN_FULL_NAME_LENGTH = 3
-const OAUTH_PROVIDERS = ['Google', 'Microsoft', 'Facebook']
-
-type AuthMode = 'login' | 'register'
-type AppStage = 'authentication' | 'onboarding' | 'dashboard' | 'pera'
-
-interface AuthState {
-  mode: AuthMode
-  fullName: string
-  email: string
+  exit: { opacity: 0, y: -10 },
+  transition: { duration: 0.2 },
 }
 
-interface AuthPageProps {
-  onAuthenticate: (auth: AuthState) => void
-}
+function App() {
+  const [activePage, setActivePage] = useState<Page>('Dashboard')
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [toasts, setToasts] = useState<ToastState[]>([])
 
-function AuthPage({ onAuthenticate }: AuthPageProps) {
-  const [mode, setMode] = useState<AuthMode>('login')
-  const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const isEmailValid = EMAIL_PATTERN.test(email.trim())
-
-  const canSubmit =
-    isEmailValid &&
-    password.trim().length >= MIN_PASSWORD_LENGTH &&
-    (mode === 'login' || fullName.trim().length >= MIN_FULL_NAME_LENGTH)
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!canSubmit) return
-
-    onAuthenticate({
-      mode,
-      fullName: mode === 'register' ? fullName.trim() : '',
-      email: email.trim(),
-    })
+  const notify = (message: string) => {
+    const id = Date.now()
+    setToasts((current) => [...current, { id, message }])
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id))
+    }, 2200)
   }
 
-  return (
-    <main className="min-h-screen bg-slate-950 px-3 py-4 text-white md:flex md:items-center md:justify-center md:p-10">
-      <div className="w-full overflow-hidden border border-emerald-900 bg-emerald-950/80 md:max-w-5xl md:grid md:grid-cols-[1.05fr,1fr]">
-        <section className="hidden border-r border-emerald-900 bg-gradient-to-b from-emerald-900/40 via-emerald-950 to-slate-950 p-6 md:block">
-          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-300">PERA System</p>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight">
-            Build your retirement fund with confidence.
-          </h1>
-          <p className="mt-3 text-base text-slate-200">
-            Sign in to manage your account, or create one to start secure onboarding.
-          </p>
-          <div className="mt-6 space-y-3">
-            {[
-              'Regulated PERA-ready onboarding',
-              'Investor suitability profiling',
-              'Secure account dashboard access',
-            ].map((item) => (
-              <p key={item} className="border border-emerald-800/70 bg-slate-950/60 p-3 text-sm text-slate-100">
-                {item}
-              </p>
-            ))}
-          </div>
-        </section>
+  const netWorth = useMemo(() => '₱ 12,450,890.50', [])
 
-        <section>
-          <header className="border-b border-emerald-900 p-4 md:p-6">
-            <p className="text-base font-semibold text-emerald-300">Account Login</p>
-            <h2 className="mt-1 text-xl font-semibold leading-tight">
-              {mode === 'login' ? 'Welcome back' : 'Create your account'}
-            </h2>
-            <p className="mt-2 text-sm text-slate-200">
-              {mode === 'login'
-                ? 'Sign in to continue to your dashboard.'
-                : 'Create a new account to begin onboarding.'}
-            </p>
-            <div className="mt-4 grid grid-cols-2 gap-2 border border-slate-700 bg-slate-900 p-1">
-              {(['login', 'register'] as const).map((currentMode) => (
+  return (
+    <div className="min-h-screen bg-[#022c22] text-emerald-50">
+      <div className="grid min-h-screen grid-cols-[250px,1fr]">
+        <aside className="border-r border-[#059669] bg-[#022c22] p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">Emerald Admin</p>
+          <p className="mt-2 border border-[#059669] bg-[#064e3b] p-2 text-sm">Institutional Console</p>
+
+          <nav className="mt-5 space-y-2" aria-label="Primary Navigation">
+            {pages.map((item) => {
+              const active = activePage === item.label
+              return (
                 <button
-                  key={currentMode}
+                  key={item.label}
                   type="button"
-                  onClick={() => setMode(currentMode)}
-                  className={`min-h-11 border px-3 text-sm font-semibold ${
-                    mode === currentMode
-                      ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
-                      : 'border-transparent text-slate-300'
+                  onClick={() => setActivePage(item.label)}
+                  className={`flex min-h-11 w-full items-center gap-3 border px-3 text-left text-base ${
+                    active
+                      ? 'border-[#059669] bg-[#064e3b] text-emerald-100'
+                      : 'border-[#059669] text-emerald-200'
                   }`}
+                  aria-current={active ? 'page' : undefined}
                 >
-                  {currentMode === 'login' ? 'Sign In' : 'Create Account'}
+                  <span aria-hidden>{item.icon}</span>
+                  <span>{item.label}</span>
                 </button>
-              ))}
+              )
+            })}
+          </nav>
+        </aside>
+
+        <div className="flex flex-col">
+          <header className="border-b border-[#059669] bg-[#064e3b] px-6 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="text-2xl font-semibold">{activePage}</h1>
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ borderColor: ['#059669', '#10b981', '#059669'] }}
+                  transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2.2 }}
+                  className="min-h-11 border bg-[#022c22] px-4 py-2 text-sm"
+                >
+                  Total Net Worth: <span className="font-semibold text-emerald-200">{netWorth}</span>
+                </motion.div>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileMenu((value) => !value)}
+                    className="min-h-11 border border-[#059669] bg-[#022c22] px-4 text-sm"
+                  >
+                    User Profile · Account Level: Premium
+                  </button>
+                  {showProfileMenu && (
+                    <div className="absolute right-0 top-12 z-20 min-w-52 border border-[#059669] bg-[#022c22] p-2 text-sm">
+                      <p className="border border-[#059669] p-2">Verify Credentials</p>
+                      <p className="mt-2 border border-[#059669] p-2">Security Controls</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </header>
 
-          <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-6">
-            {mode === 'register' && (
-              <div>
-                <label className="block text-sm font-medium text-slate-200" htmlFor="auth-full-name">
-                  Full Name
-                </label>
-                <input
-                  id="auth-full-name"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                  className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
-                  placeholder="Juan Dela Cruz"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-slate-200" htmlFor="auth-email">
-                Email
-              </label>
-              <input
-                id="auth-email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
-                placeholder="name@email.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-200" htmlFor="auth-password">
-                Password
-              </label>
-              <input
-                id="auth-password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                aria-describedby="auth-password-helper"
-                className="mt-1 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
-                placeholder="••••••••"
-              />
-              <p id="auth-password-helper" className="mt-1 text-xs text-slate-400">
-                Minimum 8 characters required.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-400">
-                {mode === 'login' ? 'Use your secure account credentials.' : 'Set a secure password to continue.'}
-              </span>
-              {mode === 'login' && <span className="font-medium text-emerald-300">Forgot password? Coming soon.</span>}
-            </div>
-
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="min-h-11 w-full border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
-            >
-              {mode === 'login' ? 'Sign In' : 'Create Account & Continue'}
-            </button>
-
-            <div className="relative py-1">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-700" />
-              </div>
-              <p className="relative mx-auto w-fit bg-emerald-950/80 px-2 text-xs uppercase tracking-wide text-slate-400">
-                Or continue with
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {OAUTH_PROVIDERS.map((provider) => (
-                <button
-                  key={provider}
-                  type="button"
-                  disabled
-                  aria-label={`Sign in with ${provider}`}
-                  className="min-h-11 border border-slate-700 bg-slate-900 px-3 text-sm font-medium text-slate-400 opacity-70 disabled:cursor-not-allowed"
-                >
-                  {provider}
-                </button>
-              ))}
-            </div>
-            <p className="text-center text-xs text-slate-400">OAuth sign-in options are shown for demo UI flow.</p>
-          </form>
-        </section>
+          <main className="grid flex-1 gap-4 bg-[#022c22] p-4 md:grid-cols-12">
+            {activePage === 'Dashboard' && <DashboardWorkspace onFeedback={notify} />}
+            {activePage === 'Trading' && <TradingWorkspace onFeedback={notify} />}
+            {activePage === 'PERA/Portfolios' && <PeraWorkspace onFeedback={notify} />}
+            {activePage === 'Learning Hub' && <LearningHubWorkspace />}
+            {activePage === 'Settings' && <SettingsWorkspace />}
+          </main>
+        </div>
       </div>
-    </main>
+
+      <div className="pointer-events-none fixed bottom-4 right-4 space-y-2">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.p
+              key={toast.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="border border-[#10b981] bg-[#022c22] px-4 py-2 text-sm text-emerald-100"
+            >
+              {toast.message}
+            </motion.p>
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
   )
 }
 
-interface OnboardingPageProps {
-  auth: AuthState
-  onComplete: () => void
-  onBackToAuth: () => void
+function DashboardWorkspace({ onFeedback }: { onFeedback: (message: string) => void }) {
+  return (
+    <>
+      <section className="col-span-12 grid gap-4 lg:col-span-8">
+        <article className="border border-[#059669] bg-[#064e3b] p-4">
+          <h2 className="text-xl font-semibold">Post-Login Onboarding Wizard</h2>
+          <p className="mt-2 text-base text-emerald-100">
+            Execute compliance setup in four guided phases with controlled disclosure.
+          </p>
+          <OnboardingWizard onFeedback={onFeedback} />
+        </article>
+      </section>
+
+      <aside className="col-span-12 space-y-4 lg:col-span-4">
+        <article className="border border-[#059669] bg-[#064e3b] p-4">
+          <p className="text-sm uppercase tracking-wide text-emerald-200">Liquidity Window</p>
+          <p className="mt-2 text-2xl font-semibold">₱ 1,284,000.00</p>
+          <p className="mt-2 text-base text-emerald-100">Available for Execute Trade actions today.</p>
+        </article>
+
+        <article className="border border-[#059669] bg-[#064e3b] p-4">
+          <p className="text-sm uppercase tracking-wide text-emerald-200">Learning Hub Snapshot</p>
+          <p className="mt-2 text-base text-emerald-100">Navigate to Learning Hub to review mandatory modules and completion rings.</p>
+        </article>
+      </aside>
+    </>
+  )
 }
 
-function OnboardingPage({ auth, onComplete, onBackToAuth }: OnboardingPageProps) {
+function OnboardingWizard({ onFeedback }: { onFeedback: (message: string) => void }) {
   const {
     step,
     fullName,
@@ -214,531 +177,334 @@ function OnboardingPage({ auth, onComplete, onBackToAuth }: OnboardingPageProps)
     isTinValid,
     ageBracket,
     setAgeBracket,
-    accountType,
-    setAccountType,
-    termsReviewed,
-    setTermsReviewed,
     selectedBank,
     setSelectedBank,
     banks,
+    accounts,
+    toggleAccount,
     isaQuestions,
     isaAnswers,
     answerIsaQuestion,
     visibleQuestionCount,
+    investorProfile,
     canMoveNext,
     nextStep,
     previousStep,
   } = useOnboarding()
 
-  const handleNext = () => {
-    if (!canMoveNext) return
+  const accountCards: ProvisioningAccount[] = ['Normal Trading', 'Managed PERA Portfolios']
 
-    if (step === FINAL_ONBOARDING_STEP_INDEX) {
-      onComplete()
+  const handleNext = () => {
+    if (!canMoveNext && step < 3) return
+    if (step === 3) {
+      onFeedback('Onboarding certificate issued. Credentials verified.')
       return
     }
-
     nextStep()
+    onFeedback('Step authorized and recorded.')
   }
 
   return (
-    <AppWorkspaceLayout
-      userEmail={auth.email}
-      sectionLabel="Onboarding"
-      title="Secure Account Activation"
-      description="Complete your onboarding with confidence through regulated Philippine open-finance rails."
-      activeNav="onboarding"
-      onLogout={onBackToAuth}
-      footer={
-        <div className="flex flex-col gap-2 md:flex-row md:justify-end">
-          {step > 0 && (
-            <button
-              type="button"
-              onClick={previousStep}
-              className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100 md:min-w-40"
-            >
-              Back
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={!canMoveNext}
-            className="min-h-11 border border-emerald-500 bg-emerald-700 px-4 text-base font-semibold text-white disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500 md:min-w-56"
-          >
-            {step === 0
-              ? 'Submit for Verification'
-              : step === 1
-                ? 'Confirm Contribution'
-                : 'Complete Onboarding'}
-          </button>
-        </div>
-      }
-    >
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-        {ONBOARDING_STEPS.map((label, index) => (
-          <div
+    <div className="mt-4 space-y-4">
+      <div className="grid gap-2 md:grid-cols-4">
+        {onboardingSteps.map((label, index) => (
+          <p
             key={label}
-            className={`border p-2 text-left text-sm ${
-              index <= step
-                ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
-                : 'border-slate-700 bg-slate-900 text-slate-300'
+            className={`border p-2 text-sm ${
+              index <= step ? 'border-[#10b981] bg-[#022c22]' : 'border-[#059669] bg-[#064e3b]'
             }`}
           >
-            <p className="text-xs uppercase tracking-wide">Step {index + 1}</p>
-            <p className="mt-1 text-sm">{label}</p>
-          </div>
+            {index + 1}. {label}
+          </p>
         ))}
       </div>
 
-      <section className="mt-6">
-        <AnimatePresence mode="wait">
-          {step === 0 && (
-            <motion.div key="step-1" {...panelAnimation} className="space-y-4">
-              <h2 className="text-lg font-semibold">Identity & KYC</h2>
-              <p className="text-base text-slate-200">
-                We verify identity first so your first investment action is fast and compliant.
-              </p>
-
-              <label className="block text-sm font-medium text-slate-200" htmlFor="full-name">
-                Full Legal Name
+      <AnimatePresence mode="wait">
+        {step === 0 && (
+          <motion.section key="wizard-kyc" {...panelAnimation} className="space-y-3">
+            <h3 className="text-lg font-semibold">Identity & KYC</h3>
+            <div>
+              <label htmlFor="legal-name" className="text-sm text-emerald-100">
+                Legal Name
               </label>
               <input
-                id="full-name"
+                id="legal-name"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
-                className="min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+                className="mt-1 min-h-11 w-full border border-[#059669] bg-[#022c22] px-3 text-base"
                 placeholder="Juan Dela Cruz"
               />
-
-              <label className="block text-sm font-medium text-slate-200" htmlFor="tin">
-                Tax Identification Number (TIN)
+            </div>
+            <div>
+              <label htmlFor="tin" className="text-sm text-emerald-100">
+                TIN (9-12 digits)
               </label>
-              <div className="flex items-center gap-2">
+              <div className="mt-1 flex items-center gap-2">
                 <input
                   id="tin"
                   value={tin}
                   onChange={(event) => setTinValue(event.target.value)}
-                  className="min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+                  className="min-h-11 w-full border border-[#059669] bg-[#022c22] px-3 text-base"
                   placeholder="000-000-000"
                 />
-                <AnimatePresence>
-                  {isTinValid && (
-                    <motion.span
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.8, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      role="status"
-                      aria-label="TIN verified"
-                      className="min-h-11 border border-emerald-500 bg-emerald-900/40 px-3 text-sm font-semibold text-emerald-300"
-                    >
-                      Verified
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                <span
+                  className={`min-h-11 border px-3 py-2 text-sm ${
+                    isTinValid ? 'border-[#10b981] text-emerald-100' : 'border-[#059669] text-emerald-300'
+                  }`}
+                >
+                  {isTinValid ? 'Verified' : 'Pending'}
+                </span>
               </div>
-              {tinError ? (
-                <p className="text-sm text-rose-300">{tinError}</p>
-              ) : (
-                <p className="text-sm text-slate-300">Inline validation confirms format in real time.</p>
-              )}
+              <p className="mt-1 text-sm text-emerald-100">{tinError || 'Masked format applied as you type.'}</p>
+            </div>
 
-              <label className="block text-sm font-medium text-slate-200" htmlFor="age-bracket">
+            <div>
+              <label htmlFor="age-bracket" className="text-sm text-emerald-100">
                 Age Bracket
               </label>
               <select
                 id="age-bracket"
                 value={ageBracket}
                 onChange={(event) => setAgeBracket(event.target.value)}
-                className="min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-base text-white outline-none focus:border-emerald-500"
+                className="mt-1 min-h-11 w-full border border-[#059669] bg-[#022c22] px-3 text-base"
               >
-                {['18-24', '25-34', '35-44', '45-54', '55+'].map((option) => (
+                {['21-30', '31-40', '41-50', '51-60'].map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
               </select>
+            </div>
 
-              <p className="border border-slate-700 bg-slate-900 p-3 text-sm text-slate-300">
-                eTCC (Electronic Tax Credit Certificates) are securely managed in-platform after
-                verification.
-              </p>
-            </motion.div>
-          )}
-
-          {step === 1 && (
-            <motion.div key="step-2" {...panelAnimation} className="space-y-4">
-              <h2 className="text-lg font-semibold">Account Provisioning</h2>
-              <p className="text-base text-slate-200">
-                Choose the account model that matches your contribution strategy.
-              </p>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                {(['Normal', 'PERA'] as const).map((type) => (
+            <div>
+              <p className="mb-2 text-sm text-emerald-100">Open Finance Partners</p>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                {banks.map((bank) => (
                   <button
-                    key={type}
+                    key={bank}
                     type="button"
-                    onClick={() => setAccountType(type)}
-                    className={`min-h-11 border p-4 text-left text-base ${
-                      accountType === type
-                        ? 'border-emerald-500 bg-emerald-900/40'
-                        : 'border-slate-700 bg-slate-900'
+                    onClick={() => {
+                      setSelectedBank(bank)
+                      onFeedback(`${bank} authorization selected.`)
+                    }}
+                    className={`min-h-11 border px-3 text-sm font-medium transition ${
+                      selectedBank === bank
+                        ? 'border-[#10b981] bg-[#022c22] text-emerald-100 grayscale-0'
+                        : 'border-[#059669] text-slate-300 grayscale hover:text-emerald-100 hover:grayscale-0'
                     }`}
                   >
-                    <p className="font-semibold">{type} Account</p>
-                    <p className="mt-1 text-sm text-slate-300">
-                      {type === 'PERA'
-                        ? 'For long-term retirement contributions with tax benefits.'
-                        : 'For regular investing and liquidity access.'}
-                    </p>
+                    {bank}
                   </button>
                 ))}
               </div>
+            </div>
+          </motion.section>
+        )}
 
-              <div className="border border-emerald-500 bg-emerald-900/30 p-3">
-                <p className="text-sm font-semibold text-emerald-200">55/5 Rule</p>
-                <p className="mt-1 text-sm text-slate-100">
-                  PERA benefits are designed for disciplined retirement saving. Early withdrawals may
-                  trigger tax impacts and reduced incentives.
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-sm font-medium text-slate-200">Open Finance Partner Banks</p>
-                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                  {banks.map((bank) => (
-                    <button
-                      key={bank}
-                      type="button"
-                      onClick={() => setSelectedBank(bank)}
-                      className={`min-h-11 border p-2 text-sm font-semibold transition ${
-                        selectedBank === bank
-                          ? 'border-emerald-500 text-emerald-200 grayscale-0'
-                          : 'border-slate-700 text-slate-300 grayscale hover:border-emerald-500 hover:text-emerald-200 hover:grayscale-0'
-                      }`}
-                    >
-                      {bank}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className={`min-h-11 border px-4 text-base ${
-                  termsReviewed
-                    ? 'border-emerald-500 bg-emerald-900/30 text-emerald-200'
-                    : 'border-slate-700 bg-slate-900 text-slate-100'
-                }`}
-                onClick={() => setTermsReviewed(!termsReviewed)}
-                aria-pressed={termsReviewed}
-              >
-                Review Terms
-              </button>
-            </motion.div>
-          )}
-
-          {step === 2 && (
-            <motion.div key="step-3" {...panelAnimation} className="space-y-4">
-              <h2 className="text-lg font-semibold">Investor Suitability Assessment</h2>
-              <p className="text-base text-slate-200">
-                Please answer each scenario. We reveal one question at a time to keep the process
-                focused.
-              </p>
-
-              <div className="space-y-4">
-                {isaQuestions.slice(0, visibleQuestionCount).map((question, index) => (
-                  <div key={question.id} className="border border-slate-700 bg-slate-900 p-3">
-                    <p className="text-base font-medium text-white">
-                      {question.id}. {question.prompt}
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {question.options.map((option) => (
-                        <button
-                          key={option.label}
-                          type="button"
-                          onClick={() => answerIsaQuestion(index, option.score)}
-                          className={`min-h-11 w-full border px-3 text-left text-sm ${
-                            isaAnswers[index] === option.score
-                              ? 'border-emerald-500 bg-emerald-900/30 text-emerald-100'
-                              : 'border-slate-700 text-slate-200'
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </section>
-    </AppWorkspaceLayout>
-  )
-}
-
-interface DashboardPageProps {
-  auth: AuthState
-  onOpenPera: () => void
-  onStartOnboarding: () => void
-  onLogout: () => void
-}
-
-interface AppWorkspaceLayoutProps {
-  userEmail: string
-  sectionLabel: string
-  title: string
-  description: ReactNode
-  activeNav: 'dashboard' | 'pera' | 'onboarding'
-  onOpenDashboard?: () => void
-  onOpenPera?: () => void
-  onOpenOnboarding?: () => void
-  onLogout: () => void
-  children: ReactNode
-  footer?: ReactNode
-}
-
-function AppWorkspaceLayout({
-  userEmail,
-  sectionLabel,
-  title,
-  description,
-  activeNav,
-  onOpenDashboard,
-  onOpenPera,
-  onOpenOnboarding,
-  onLogout,
-  children,
-  footer,
-}: AppWorkspaceLayoutProps) {
-  const navItems = [
-    { id: 'dashboard' as const, label: 'Dashboard', onClick: onOpenDashboard },
-    { id: 'onboarding' as const, label: 'Onboarding', onClick: onOpenOnboarding },
-    { id: 'pera' as const, label: 'PERA', onClick: onOpenPera },
-  ]
-
-  return (
-    <main className="min-h-screen bg-slate-950 p-3 text-white md:p-6">
-      <div className="mx-auto w-full border border-slate-800 bg-slate-950 md:max-w-7xl">
-        <div className="md:grid md:grid-cols-[240px,1fr]">
-          <aside className="border-b border-slate-800 p-4 md:border-b-0 md:border-r">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Internal Application Environment
-            </p>
-            <p className="mt-2 text-lg font-semibold text-white">PERA System</p>
-            <p className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200">
-              Authenticated Session
-            </p>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Navigation</p>
-            <div className="mt-4 space-y-2">
-              {navItems.map((item) => {
-                const isActive = activeNav === item.id
+        {step === 1 && (
+          <motion.section key="wizard-provisioning" {...panelAnimation} className="space-y-3">
+            <h3 className="text-lg font-semibold">Portfolio Provisioning</h3>
+            <div className="grid gap-3 md:grid-cols-2">
+              {accountCards.map((account) => {
+                const active = accounts.includes(account)
                 return (
                   <button
-                    key={item.id}
+                    key={account}
                     type="button"
-                    onClick={!isActive ? item.onClick : undefined}
-                    disabled={isActive || !item.onClick}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`min-h-11 w-full border px-3 text-left text-sm font-medium ${
-                      isActive
-                        ? 'border-emerald-500 bg-emerald-900/40 text-emerald-100'
-                        : 'border-slate-700 bg-slate-900 text-slate-200'
+                    onClick={() => {
+                      toggleAccount(account)
+                      onFeedback(`${active ? 'Deactivated' : 'Activated'}: ${account}.`)
+                    }}
+                    className={`min-h-11 border p-3 text-left text-base ${
+                      active ? 'border-[#10b981] bg-[#022c22]' : 'border-[#059669] bg-[#064e3b]'
                     }`}
                   >
-                    {item.label}
+                    <p className="font-semibold">{account}</p>
+                    <p className="mt-1 text-sm text-emerald-100">
+                      {account === 'Managed PERA Portfolios'
+                        ? 'Authorize PERA Contribution workflow and managed retirement allocations.'
+                        : 'Enable direct execution for listed securities and funds.'}
+                    </p>
                   </button>
                 )
               })}
             </div>
-            <div className="mt-4 border border-slate-800 bg-slate-900 p-3">
-              <p className="text-xs uppercase tracking-wide text-slate-400">Signed in as</p>
-              <p className="mt-1 break-all text-sm font-medium text-slate-100">{userEmail}</p>
+
+            <div className="border border-[#10b981] bg-[#022c22] p-3">
+              <p className="font-semibold text-emerald-100">55/5 Rule Warning</p>
+              <p className="mt-1 text-base text-emerald-100">
+                PERA withdrawals before age 55 or before minimum 5-year holding may reduce tax advantages.
+              </p>
             </div>
-            <button
-              type="button"
-              onClick={onLogout}
-              className="mt-4 min-h-11 w-full border border-slate-700 bg-slate-900 px-3 text-left text-sm font-medium text-slate-100"
-            >
-              Logout
-            </button>
-          </aside>
+          </motion.section>
+        )}
 
-          <div className="flex flex-1 flex-col">
-            <header className="border-b border-slate-800 p-4">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    {sectionLabel}
-                  </p>
-                  <h1 className="mt-1 text-2xl font-semibold leading-tight">{title}</h1>
+        {step === 2 && (
+          <motion.section key="wizard-isa" {...panelAnimation} className="space-y-3">
+            <h3 className="text-lg font-semibold">Investor Suitability Assessment</h3>
+            <p className="text-base text-emerald-100">Five scenario-based prompts determine your risk profile.</p>
+            {isaQuestions.slice(0, visibleQuestionCount).map((question, index) => (
+              <article key={question.id} className="border border-[#059669] bg-[#022c22] p-3">
+                <p className="text-base font-medium">{question.prompt}</p>
+                <div className="mt-2 space-y-2">
+                  {question.options.map((option) => {
+                    const active = isaAnswers[index] === option.score
+                    return (
+                      <button
+                        key={option.label}
+                        type="button"
+                        onClick={() => {
+                          answerIsaQuestion(index, option.score)
+                          onFeedback('ISA response recorded.')
+                        }}
+                        className={`min-h-11 w-full border px-3 text-left text-sm ${
+                          active ? 'border-[#10b981] bg-[#059669] text-white' : 'border-[#059669] text-emerald-100'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
                 </div>
-                <p className="border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300">
-                  Access: Internal Only
-                </p>
-              </div>
-              <div className="mt-3 text-base text-slate-300">{description}</div>
-            </header>
+              </article>
+            ))}
+          </motion.section>
+        )}
 
-            <section className="flex-1 p-4 md:p-6">{children}</section>
+        {step === 3 && (
+          <motion.section key="wizard-success" {...panelAnimation} className="space-y-3">
+            <h3 className="text-lg font-semibold">Success Terminal</h3>
+            <article className="border border-[#10b981] bg-[#022c22] p-5">
+              <p className="text-sm uppercase tracking-[0.2em] text-emerald-300">Corporate Certificate</p>
+              <p className="mt-2 text-2xl font-semibold">Onboarding Authorized</p>
+              <p className="mt-2 text-base text-emerald-100">Risk Profile: {investorProfile.isaScore}</p>
+              <p className="mt-1 text-base text-emerald-100">Age Bracket: {investorProfile.ageBracket}</p>
+              <p className="mt-1 text-base text-emerald-100">
+                Credential Status: {investorProfile.isVerified ? 'Verified' : 'Pending Verification'}
+              </p>
+              <p className="mt-3 text-sm text-emerald-200">Reference: EMRLD-CERT-2026-0416</p>
+            </article>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
-            {footer ? <footer className="border-t border-slate-800 p-4">{footer}</footer> : null}
-          </div>
-        </div>
+      <div className="flex flex-wrap justify-end gap-2 border-t border-[#059669] pt-3">
+        <button
+          type="button"
+          onClick={previousStep}
+          disabled={step === 0}
+          className="min-h-11 border border-[#059669] px-4 text-base disabled:opacity-50"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          onClick={handleNext}
+          disabled={step < 3 && !canMoveNext}
+          className="min-h-11 border border-[#10b981] bg-[#059669] px-4 text-base font-semibold text-white disabled:opacity-50"
+        >
+          {step === 3 ? 'Verify Credentials' : 'Continue'}
+        </button>
       </div>
-    </main>
+    </div>
   )
 }
 
-function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: DashboardPageProps) {
+function TradingWorkspace({ onFeedback }: { onFeedback: (message: string) => void }) {
   return (
-    <AppWorkspaceLayout
-      userEmail={auth.email}
-      sectionLabel="Dashboard"
-      title="Welcome to PERA System"
-      description={
-        <p>
-          Signed in as <span className="font-semibold text-emerald-200">{auth.email}</span>
-        </p>
-      }
-      activeNav="dashboard"
-      onOpenPera={onOpenPera}
-      onOpenOnboarding={onStartOnboarding}
-      onLogout={onLogout}
-      footer={
-        <div className="grid gap-2 md:max-w-sm">
+    <section className="col-span-12 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {[
+        { title: 'Equity Book', value: '₱ 4,280,000', action: 'Execute Trade' },
+        { title: 'Fixed Income', value: '₱ 3,120,500', action: 'Execute Trade' },
+        { title: 'Cash Buffer', value: '₱ 950,300', action: 'Authorize PERA Contribution' },
+      ].map((card) => (
+        <article key={card.title} className="border border-[#059669] bg-[#064e3b] p-4">
+          <p className="text-sm uppercase tracking-wide text-emerald-300">{card.title}</p>
+          <p className="mt-2 text-2xl font-semibold">{card.value}</p>
           <button
             type="button"
-            onClick={onStartOnboarding}
-            className="min-h-11 border border-slate-700 bg-slate-900 px-4 text-base text-slate-100"
+            onClick={() => onFeedback(`${card.action} request queued.`)}
+            className="mt-3 min-h-11 border border-[#10b981] bg-[#059669] px-4 text-sm font-semibold"
           >
-            Re-open Onboarding
+            {card.action}
           </button>
-        </div>
-      }
-    >
-      <section className="grid gap-4 md:grid-cols-2">
-        <article className="border border-slate-700 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wider text-slate-400">Account</p>
-          <p className="mt-2 text-base font-semibold text-white capitalize">{auth.mode} profile</p>
-          <p className="mt-1 text-sm text-slate-300">
-            {auth.fullName ? auth.fullName : 'Authenticated investor account'}
-          </p>
         </article>
-        <article className="border border-slate-700 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wider text-slate-400">Quick Actions</p>
-          <p className="mt-2 text-base font-semibold text-white">Manage your retirement flow</p>
-          <p className="mt-1 text-sm text-slate-300">Open PERA details or revisit onboarding data.</p>
-        </article>
-      </section>
-    </AppWorkspaceLayout>
+      ))}
+    </section>
   )
 }
 
-interface PeraPageProps {
-  onBack: () => void
-  onStartOnboarding: () => void
-  auth: AuthState
-  onLogout: () => void
-}
-
-function PeraPage({ onBack, onStartOnboarding, auth, onLogout }: PeraPageProps) {
+function PeraWorkspace({ onFeedback }: { onFeedback: (message: string) => void }) {
   return (
-    <AppWorkspaceLayout
-      userEmail={auth.email}
-      sectionLabel="PERA Page"
-      title="Personal Equity and Retirement Account"
-      description="Review retirement account details, contribution guidance, and tax-advantaged context."
-      activeNav="pera"
-      onOpenDashboard={onBack}
-      onOpenOnboarding={onStartOnboarding}
-      onLogout={onLogout}
-    >
-      <section className="space-y-4">
-        <article className="border border-slate-700 bg-slate-900 p-4">
-          <h2 className="text-base font-semibold text-white">Contribution Notes</h2>
-          <p className="mt-2 text-sm text-slate-300">
-            PERA is designed for long-term retirement goals, with incentives tied to regulated
-            contribution behavior.
-          </p>
-        </article>
-        <article className="border border-slate-700 bg-slate-900 p-4">
-          <h2 className="text-base font-semibold text-white">Tax Benefit Reminder</h2>
-          <p className="mt-2 text-sm text-slate-300">
-            Eligible contributions may qualify for tax benefits under current PERA policy rules.
-          </p>
-        </article>
-      </section>
-    </AppWorkspaceLayout>
+    <section className="col-span-12 grid gap-4 md:grid-cols-2">
+      <article className="border border-[#059669] bg-[#064e3b] p-4">
+        <h2 className="text-xl font-semibold">Managed PERA Portfolios</h2>
+        <p className="mt-2 text-base text-emerald-100">
+          Tax-advantaged allocations with retirement-preservation guardrails.
+        </p>
+        <button
+          type="button"
+          onClick={() => onFeedback('Authorize PERA Contribution approved.')}
+          className="mt-3 min-h-11 border border-[#10b981] bg-[#059669] px-4 text-sm font-semibold text-white"
+        >
+          Authorize PERA Contribution
+        </button>
+      </article>
+      <article className="border border-[#059669] bg-[#064e3b] p-4">
+        <p className="text-sm uppercase tracking-wide text-emerald-300">Policy Notice</p>
+        <p className="mt-2 text-base text-emerald-100">
+          Withdrawal events are evaluated against the 55/5 requirement before settlement processing.
+        </p>
+      </article>
+    </section>
   )
 }
 
-function App() {
-  const initialAuthState: AuthState = {
-    mode: 'login',
-    fullName: '',
-    email: '',
-  }
-  const [stage, setStage] = useState<AppStage>('authentication')
-  const [auth, setAuth] = useState<AuthState>(initialAuthState)
-  const [onboardingResetCounter, setOnboardingResetCounter] = useState(0)
-
-  if (stage === 'authentication') {
-    return (
-      <AuthPage
-        onAuthenticate={(nextAuth) => {
-          setAuth(nextAuth)
-          setOnboardingResetCounter((current) => current + 1)
-          setStage(nextAuth.mode === 'login' ? 'dashboard' : 'onboarding')
-        }}
-      />
-    )
-  }
-
-  if (stage === 'onboarding') {
-    return (
-      <OnboardingPage
-        key={onboardingResetCounter}
-        auth={auth}
-        onComplete={() => setStage('dashboard')}
-        onBackToAuth={() => setStage('authentication')}
-      />
-    )
-  }
-
-  if (stage === 'pera') {
-    return (
-      <PeraPage
-        auth={auth}
-        onBack={() => setStage('dashboard')}
-        onStartOnboarding={() => {
-          setOnboardingResetCounter((current) => current + 1)
-          setStage('onboarding')
-        }}
-        onLogout={() => {
-          setAuth(initialAuthState)
-          setStage('authentication')
-        }}
-      />
-    )
-  }
+function LearningHubWorkspace() {
+  const modules = [
+    { title: 'PERA Compliance Basics', progress: 78 },
+    { title: 'Risk & Diversification', progress: 52 },
+    { title: 'Tax-Efficient Contributions', progress: 31 },
+    { title: 'Order Execution Controls', progress: 94 },
+  ]
 
   return (
-    <DashboardPage
-      auth={auth}
-      onOpenPera={() => setStage('pera')}
-      onStartOnboarding={() => {
-        setOnboardingResetCounter((current) => current + 1)
-        setStage('onboarding')
-      }}
-      onLogout={() => {
-        setAuth(initialAuthState)
-        setStage('authentication')
-      }}
-    />
+    <section className="col-span-12 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {modules.map((module) => (
+        <article key={module.title} className="border border-[#059669] bg-[#064e3b] p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-base font-semibold">{module.title}</p>
+            <div
+              className="grid h-12 w-12 place-items-center border border-[#10b981] text-xs font-semibold"
+              style={{ background: `conic-gradient(#10b981 ${module.progress}%, #022c22 ${module.progress}% 100%)` }}
+              aria-label={`${module.progress}% complete`}
+            >
+              <span className="border border-[#059669] bg-[#064e3b] px-1">{module.progress}%</span>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-emerald-100">Video module with progress-tracking ring status.</p>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+function SettingsWorkspace() {
+  return (
+    <section className="col-span-12 grid gap-4 md:grid-cols-2">
+      <article className="border border-[#059669] bg-[#064e3b] p-4">
+        <h2 className="text-lg font-semibold">Credential Controls</h2>
+        <p className="mt-2 text-base text-emerald-100">
+          Security preferences, verification state, and institutional audit flags.
+        </p>
+      </article>
+      <article className="border border-[#059669] bg-[#064e3b] p-4">
+        <h2 className="text-lg font-semibold">Notification Rules</h2>
+        <p className="mt-2 text-base text-emerald-100">
+          Delivery profile for trade confirmations and compliance events.
+        </p>
+      </article>
+    </section>
   )
 }
 
