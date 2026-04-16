@@ -206,7 +206,7 @@ function OnboardingPage({ auth, onComplete, onBackToAuth }: OnboardingPageProps)
 
   return (
     <AppWorkspaceLayout
-      auth={auth}
+      userEmail={auth.email}
       sectionLabel="Onboarding"
       title="Secure Account Activation"
       description="Complete your onboarding with confidence through regulated Philippine open-finance rails."
@@ -451,7 +451,7 @@ interface DashboardPageProps {
 }
 
 interface AppWorkspaceLayoutProps {
-  auth: AuthState
+  userEmail: string
   sectionLabel: string
   title: string
   description: ReactNode
@@ -465,7 +465,7 @@ interface AppWorkspaceLayoutProps {
 }
 
 function AppWorkspaceLayout({
-  auth,
+  userEmail,
   sectionLabel,
   title,
   description,
@@ -488,11 +488,12 @@ function AppWorkspaceLayout({
       <div className="mx-auto w-full border border-slate-800 bg-slate-950 md:max-w-7xl">
         <div className="md:grid md:grid-cols-[240px,1fr]">
           <aside className="border-b border-slate-800 p-4 md:border-b-0 md:border-r">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Internal</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Internal <span className="sr-only">application environment</span>
+            </p>
             <p className="mt-2 text-lg font-semibold text-white">PERA System</p>
             <p
               aria-label="Authenticated session active"
-              role="status"
               className="mt-2 border border-emerald-700 bg-emerald-900/30 px-2 py-1 text-xs font-medium uppercase tracking-wide text-emerald-200"
             >
               Authenticated Session
@@ -521,7 +522,7 @@ function AppWorkspaceLayout({
             </div>
             <div className="mt-4 border border-slate-800 bg-slate-900 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-400">Signed in as</p>
-              <p className="mt-1 break-all text-sm font-medium text-slate-100">{auth.email}</p>
+              <p className="mt-1 break-all text-sm font-medium text-slate-100">{userEmail}</p>
             </div>
             <button
               type="button"
@@ -543,7 +544,6 @@ function AppWorkspaceLayout({
                 </div>
                 <p
                   aria-label="Access level: Internal only"
-                  role="status"
                   className="border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-300"
                 >
                   Access: Internal Only
@@ -565,7 +565,7 @@ function AppWorkspaceLayout({
 function DashboardPage({ auth, onOpenPera, onStartOnboarding, onLogout }: DashboardPageProps) {
   return (
     <AppWorkspaceLayout
-      auth={auth}
+      userEmail={auth.email}
       sectionLabel="Dashboard"
       title="Welcome to PERA System"
       description={
@@ -617,7 +617,7 @@ interface PeraPageProps {
 function PeraPage({ onBack, onStartOnboarding, auth, onLogout }: PeraPageProps) {
   return (
     <AppWorkspaceLayout
-      auth={auth}
+      userEmail={auth.email}
       sectionLabel="PERA Page"
       title="Personal Equity and Retirement Account"
       description="Review retirement account details, contribution guidance, and tax-advantaged context."
